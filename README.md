@@ -52,7 +52,17 @@ contract MyContract {
 }
 
 ```
+## Understanding Pool Data (Beginner Friendly)
 
+When interacting with a Uniswap V3 pool, some important values are returned that may be confusing for beginners:
+
+- **slot0**: A struct that contains multiple important variables such as current price, tick, and observation data.
+- **sqrtPriceX96**: Represents the current price of the pool in a fixed-point format (Q64.96). It is not a direct price and needs conversion.
+- **tick**: Represents the current price range index of the pool. Each tick corresponds to a specific price.
+
+These values are essential for understanding how the pool behaves and how swaps and liquidity positions are calculated.
+
+Adding a simple explanation for these terms can make it much easier for new developers to understand Uniswap V3.
 ## Licensing
 
 The primary license for Uniswap V3 Core is the Business Source License 1.1 (`BUSL-1.1`), see [`LICENSE`](./LICENSE). However, some files are dual licensed under `GPL-2.0-or-later`:
