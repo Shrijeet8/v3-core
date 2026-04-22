@@ -78,30 +78,67 @@ async function main() {
 main();
 ```
 ⚠️ Make sure to replace `YOUR_RPC_URL` and `UNISWAP_POOL_ADDRESS` with valid values.
+⚡ Visual representation of how Uniswap V3 pool state flows internally.
+## Pool Data Flow
 
-This example demonstrates how to fetch basic pool state variables like price and tick.
-## 🔍 Pool Data Flow (Visual Guide)
-        👤 User / Trader
-                │
-                ▼
-     🧠 Uniswap V3 Pool Contract
-                │
-                ▼
-        📦 slot0 (Core State)
-                │
-   ┌────────────┼────────────┐
-   ▼            ▼            ▼
-📊 sqrtPriceX96 📍 tick      🔄 observationIndex
-   │            │            │
-   ▼            ▼            ▼
-💰 Price     📈 Range     🔮 Oracle Data
+```
++---------------------------------------------------------------------+
+|               UNISWAP V3 -- POOL DATA FLOW                         |
++---------------------------------------------------------------------+
 
-                │
-                ▼
-        📤 Derived Outputs
-   ┌────────────┼────────────┐
-   ▼            ▼            ▼
-💲 Token Price  💧 Liquidity  📊 Pool State
+                        User / Trader
+                   (swap . mint . burn . collect)
+                              |
+                              |  on-chain call
+                              v
+             +--------------------------------+
+             |   Uniswap V3 Pool Contract     |
+             |       UniswapV3Pool.sol        |
+             +----------------+---------------+
+                              |
+                              v
+             +--------------------------------+
+             |      slot0  --  Core State     |
+             |   (single SLOAD . packed slot) |
+             +------+----------+----------+---+
+                    |          |          |
+          +---------+          |          +---------+
+          |                    |                    |
+          v                    v                    v
+   +--------------+    +--------------+    +------------------+
+   | sqrtPriceX96 |    |     tick     |    | observationIndex |
+   |   (Q64.96)   |    | (log 1.0001  |    | (oracle buffer   |
+   |              |    |   of price)  |    |    pointer)      |
+   +--------------+    +--------------+    +------------------+
+          |                    |                    |
+          v                    v                    v
+   +--------------+    +--------------+    +------------------+
+   |  Spot Price  |    | Active Range |    |  TWAP / Oracle   |
+   |              |    |              |    |                  |
+   | price =      |    | in-range if  |    | tickCumulative   |
+   | (sqrt/2^96)^2|    | tickLower <= |    | / dt -> avgPrice |
+   +--------------+    | tick <=      |    +------------------+
+          |            | tickUpper    |             |
+          |            +--------------+             |
+          |                    |                    |
+          +--------------------+--------------------+
+                               |
+                               v
+             +-------------------------------+
+             |       Derived Outputs         |
+             +--------+-----------+----------+
+                      |           |          |
+          +-----------+           |          +-----------+
+          |                       |                      |
+          v                       v                      v
+   +-------------+       +--------------+    +---------------+
+   | Token Price |       |  Liquidity   |    |  Pool State   |
+   |             |       |   Status     |    |               |
+   | - spot      |       | - active L   |    | - fee tier    |
+   | - TWAP      |       | - in-range?  |    | - unlocked    |
+   | - display   |       | - LP PnL     |    | - protocol fee|
+   +-------------+       +--------------+    +---------------+
+```
 ## Licensing
 
 The primary license for Uniswap V3 Core is the Business Source License 1.1 (`BUSL-1.1`), see [`LICENSE`](./LICENSE). However, some files are dual licensed under `GPL-2.0-or-later`:
