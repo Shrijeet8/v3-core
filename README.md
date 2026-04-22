@@ -80,6 +80,28 @@ main();
 ⚠️ Make sure to replace `YOUR_RPC_URL` and `UNISWAP_POOL_ADDRESS` with valid values.
 
 This example demonstrates how to fetch basic pool state variables like price and tick.
+## 🔍 Pool Data Flow (Visual Guide)
+        👤 User / Trader
+                │
+                ▼
+     🧠 Uniswap V3 Pool Contract
+                │
+                ▼
+        📦 slot0 (Core State)
+                │
+   ┌────────────┼────────────┐
+   ▼            ▼            ▼
+📊 sqrtPriceX96 📍 tick      🔄 observationIndex
+   │            │            │
+   ▼            ▼            ▼
+💰 Price     📈 Range     🔮 Oracle Data
+
+                │
+                ▼
+        📤 Derived Outputs
+   ┌────────────┼────────────┐
+   ▼            ▼            ▼
+💲 Token Price  💧 Liquidity  📊 Pool State
 ## Licensing
 
 The primary license for Uniswap V3 Core is the Business Source License 1.1 (`BUSL-1.1`), see [`LICENSE`](./LICENSE). However, some files are dual licensed under `GPL-2.0-or-later`:
